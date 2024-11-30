@@ -6,6 +6,7 @@
 *.car
 *.rom
 *.xex
+/export/atr/*
 /original/audio
 /original/source
 /original/video
