@@ -1,0 +1,3 @@
+The "pixel_dreams-16bitstereo.aup3" project contains the "pixel_dreams-16bitstereo.wav" track.
+The track was split, reduced to mono and volume was normalized.
+Then the project was copied to "pixel_dreams-16bitstereo-nr.aup3" and "noise gate" was applied.

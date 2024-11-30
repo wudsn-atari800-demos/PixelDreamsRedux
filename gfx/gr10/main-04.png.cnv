@@ -1,0 +1,42 @@
+#WUDSN IDE Converter Parameters
+#Sun Nov 24 16:03:07 CET 2024
+converterDirection=IMAGE_TO_FILES
+filesConverterParameters.columns=40
+filesConverterParameters.converterId=
+filesConverterParameters.displayAspect.factorX=1
+filesConverterParameters.displayAspect.factorY=1
+filesConverterParameters.displayShrinkToFit=false
+filesConverterParameters.displayZoomToFit=true
+filesConverterParameters.imageAspect.factorX=1
+filesConverterParameters.imageAspect.factorY=1
+filesConverterParameters.imageFilePath=
+filesConverterParameters.palette=HIRES_1
+filesConverterParameters.paletteRGBs=0
+filesConverterParameters.paletteType=ATARI_DEFAULT
+filesConverterParameters.rows=24
+filesConverterParameters.sourceFiles=0
+filesConverterParameters.spacingColor.blue=128
+filesConverterParameters.spacingColor.green=0
+filesConverterParameters.spacingColor.red=0
+filesConverterParameters.spacingWidth=0
+imageConverterParameters.converterId=com.wudsn.ide.gfx.converter.atari8bit.LinearBitMapGraphics10Converter
+imageConverterParameters.displayAspect.factorX=1
+imageConverterParameters.displayAspect.factorY=1
+imageConverterParameters.displayShrinkToFit=false
+imageConverterParameters.displayZoomToFit=true
+imageConverterParameters.imageAspect.factorX=1
+imageConverterParameters.imageAspect.factorY=1
+imageConverterParameters.imageFilePath=main-04.png
+imageConverterParameters.script=function convertToFileData(data) {\r\n\tvar bpsl \= (data.getImageDataWidth() + 1) / 2;\r\n\tvar bytes \= [];\r\n\tvar offset \= 0;\r\n\tfor (var y \= 0; y < data.getImageDataHeight(); y++) {\r\n\t    for (var x \= 0; x < data.getImageDataWidth(); x \= x + 2) {\r\n\t\t    var c1 \= data.getPixel(x, y)+1;\r\n\t\t\tvar c2 \= data.getPixel(x + 1, y)+1;\r\n\t\t\tvar b \= c1 << 4 | c2;\r\n\t\t\tbytes[offset++] \= b;\r\n\t    }\r\n\t}\r\n\tdata.setTargetFileObject(0, bytes);\r\n\r\n  Console.println("");\r\n  var mapper \= new com.wudsn.ide.gfx.converter.atari8bit.Atari8BitPaletteMapper( );\r\n  var rgbs \= data.getImageData().getRGBs();\r\n  var result\="";\r\n  for (var i \= 0; i < rgbs.length-1; i++){\r\n     var rgb\=rgbs[i];\r\n     var atariColor \=  "$"+mapper.getPaletteIndex(rgb.red,rgb.green,rgb.blue).toString(16);\r\n     Console.println("Index "+i+" "+rgb+" "+atariColor);\r\n     if (result \=\= "") { result\=atariColor;} else { result+\=","+atariColor; }\r\n  }\r\n Console.println("Palette\: "+result);\r\n}
+imageConverterParameters.targetFiles=10
+imageConverterParameters.targetFiles.0.path=main-04.pic
+imageConverterParameters.targetFiles.1.path=
+imageConverterParameters.targetFiles.2.path=
+imageConverterParameters.targetFiles.3.path=
+imageConverterParameters.targetFiles.4.path=
+imageConverterParameters.targetFiles.5.path=
+imageConverterParameters.targetFiles.6.path=
+imageConverterParameters.targetFiles.7.path=
+imageConverterParameters.targetFiles.8.path=
+imageConverterParameters.targetFiles.9.path=
+imageConverterParameters.useDefaultScript=false

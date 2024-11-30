@@ -1,0 +1,12 @@
+*.atdbg
+*.atr
+*.lab
+*.lst
+*.lnk
+*.car
+*.rom
+*.xex
+/original/audio
+/original/source
+/original/video
+/original/jacsrc.zip

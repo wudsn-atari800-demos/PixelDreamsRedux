@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<workbook bankCount="16384" bankSize="8192" cartridgeMenuType="EXTENDED" cartridgeType="CARTRIDGE_THECART_128M" flashTargetType="THECART_128MB" title="Silly Venture 2k24 WE" userSpaceSize="0">
+    <genre name="Demos"/>
+    <entry comment="" contentCRC32="F61D6786" contentType="CARTRIDGE_MEGA_2048" displayMode="SINGLE_ENTRY" favoriteIndicator="false" fileHeaderType="CART" fileName="PixelDreamsRedux-MegaCart-2-MB-COVOX.car" fileSize="2097168" genreName="" parameters="" requiredBanksCount="256" startBankFixedIndicator="false" startBankNumber="256" title="PixelDreamsRedux-MegaCart-2-MB-COVOX" type="FILE_ENTRY"/>
+    <entry comment="" contentCRC32="A5C902A2" contentType="CARTRIDGE_MEGA_2048" displayMode="SINGLE_ENTRY" favoriteIndicator="false" fileHeaderType="CART" fileName="PixelDreamsRedux-MegaCart-2-MB-POKEY.car" fileSize="2097168" genreName="" parameters="" requiredBanksCount="256" startBankFixedIndicator="false" startBankNumber="512" title="PixelDreamsRedux-MegaCart-2-MB-POKEY" type="FILE_ENTRY"/>
+</workbook>
