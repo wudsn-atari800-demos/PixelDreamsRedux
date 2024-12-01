@@ -31,7 +31,7 @@ sm2	= sm+102*sm_width
 
 	m_start_first_bank
 	
-	.byte "Pixel Dream Redux - Bohemian Grove and AJC! - Preview 2024-11-30",13,10,0
+	.byte "Pixel Dream Redux - Bohemian Grove and AJC! - Preview 2024-12-02",13,10,0
 
 	.proc bootloader
 	sei
@@ -109,6 +109,13 @@ no_start
 	mwa #sound.irq $fffe
 	
 	jsr sync
+	ldx #0
+	lda #0
+clear	sta gtia,x
+	sta antic,x
+	inx
+	bne clear
+
 	jsr init_pokey
 	rts
 
@@ -120,6 +127,7 @@ loop	sta pokey,x
 	dex
 	bne loop
 	mva #3 skctl
+	mva #3 skctl+$10
 	rts
 	.endp
 
@@ -187,7 +195,7 @@ loop	sta pokey,x
 	.proc play
 
 	jsr interrupts.enable
-	
+
 	jsr intro.init
 	jsr intro.next
 	jsr intro.next

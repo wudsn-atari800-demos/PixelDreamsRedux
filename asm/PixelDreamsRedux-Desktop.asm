@@ -22,7 +22,7 @@ dli_offset_middle = offset_middle+4
 dli_offset_bottom = offset_middle+4+93
 
 	jsr emu.init
-;	jsr emu.animate	; Comment out to skip
+	jsr emu.animate	; Comment out to skip, will also disable samples
 
 	jsr tos.init
 	jsr tos.animate
@@ -328,8 +328,8 @@ loop	lda emu_sm_sound_chip,x
 
 	mva #>tos_pm pmbase
 	mva #3 gractl
-;	mva #$11 gprior	; 5th player for missles
-	mva #$01 gprior	; TODO: 5th player for missles
+	mva #$11 gprior	; 5th player for missles
+;	mva #$01 gprior	; TODO: 5th player for missles
 
 	mva #$0f color1
 	sta color3
@@ -443,6 +443,10 @@ not_visible
 	ldx #>.len :1
 	ldy #<.len :1
 	jsr data_stream.get_block
+	.endm
+
+	.macro m_copy_desktop_and_draw_cursor
+	m_copy_desktop :1 :2 :3
 	jsr cursor.draw
 	.endm
 
@@ -456,13 +460,13 @@ not_visible
 	jsr cursor.init
 	jsr cursor.redraw
 
-	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
-	lda #50
-	jsr wait
+	m_copy_desktop_and_draw_cursor desktop_01 desktop_start_bank_number offset_top
+	jsr wait_50
 	m_trace 192 32
-	m_copy_desktop desktop_02 desktop_start_bank_number offset_top
+	jsr wait_50
+	m_copy_desktop_and_draw_cursor desktop_02 desktop_start_bank_number offset_top
 	jsr click_and_wait_io
-	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
+	m_copy_desktop_and_draw_cursor desktop_01 desktop_start_bank_number offset_top
 
 	ldx #dli_offset_middle
 	jsr graphics8.toggle_dli_flag
@@ -477,22 +481,30 @@ fill_pm	sta tos_pm+$41c+offset_middle,x
 
 	m_copy_desktop desktop_03 desktop_start_bank_number+1 offset_middle
 	m_trace 52 98
+	jsr wait_50
 
-	m_copy_desktop desktop_04 desktop_start_bank_number+1 offset_middle
+	m_copy_desktop_and_draw_cursor desktop_04 desktop_start_bank_number+1 offset_middle
 	jsr click_and_wait_io
-	m_copy_desktop desktop_05 desktop_start_bank_number+1 offset_middle
-	m_trace 144 80
+	m_copy_desktop_and_draw_cursor desktop_05 desktop_start_bank_number+1 offset_middle
+	m_trace 154 84
 	m_trace 128 102
-	m_copy_desktop desktop_06 desktop_start_bank_number+1 offset_middle
+	jsr wait_50
+
+	m_copy_desktop_and_draw_cursor desktop_06 desktop_start_bank_number+1 offset_middle
 	jsr click_and_wait_io
 
-	m_copy_desktop desktop_07 desktop_start_bank_number+2 offset_middle
+	m_copy_desktop_and_draw_cursor desktop_07 desktop_start_bank_number+2 offset_middle
 	m_trace 52 98
-	m_copy_desktop desktop_08 desktop_start_bank_number+2 offset_middle
+	jsr wait_50
+
+	m_copy_desktop_and_draw_cursor desktop_08 desktop_start_bank_number+2 offset_middle
 	jsr click_and_wait_io
-	m_copy_desktop desktop_09 desktop_start_bank_number+2 offset_middle
+	m_copy_desktop_and_draw_cursor desktop_09 desktop_start_bank_number+2 offset_middle
+	m_trace 130 104
 	m_trace 52 98
-	m_copy_desktop desktop_10 desktop_start_bank_number+2 offset_middle
+	jsr wait_50
+
+	m_copy_desktop_and_draw_cursor desktop_10 desktop_start_bank_number+2 offset_middle
 	jsr click_and_wait_io
 
 ;	Disable middle/bottom DLI and PMs
