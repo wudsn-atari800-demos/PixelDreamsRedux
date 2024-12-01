@@ -11,6 +11,7 @@ copy_irq
 	mva irq_ram,x irq,x
 	dex
 	bpl copy_irq
+	mwa sound_chip_base irq.sound_chip_base
 	mva #sound_start_bank_number irq.bank_number
 	mwa #sound_block_start irq.sound_ptr
 	
@@ -31,14 +32,15 @@ bank_number = *+1
 	mva #$ff cart_bank
 sound_ptr = *+1
 	lda $ffff
-
-	.if ACTIVE_SOUND_MODE=sound_mode.covox
-	sta covox
-	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
-	sta audc1
-	.else
-	.error "Undefined sound mode."
-	.endif
+sound_chip_base = *+1
+	sta $ffff
+;	.if ACTIVE_SOUND_MODE=sound_mode.covox
+;	sta covox
+;	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+;	sta audc1
+;	.else
+;	.error "Undefined sound mode."
+;	.endif
 
 	inc sound_ptr
 	beq next_page

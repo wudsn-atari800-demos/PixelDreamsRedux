@@ -16,7 +16,7 @@ p2	= $82	;Word
 p3	= $84	;Word
 x1	= $86	;Byte
 x2	= $87	;Byte
-covox_base = $88 ;Word, set by desktop, used by sound
+sound_chip_base = $88 ;Word, set by desktop, used by sound
 
 main_bank = $90
 

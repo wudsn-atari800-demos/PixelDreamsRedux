@@ -8,10 +8,10 @@ emu_sm	= desktop_base+$400
 emu_pm	= desktop_base+$800
 emu_height = 23
 emu_width = 40
-emu_sm_covox = emu_sm+emu_width*13+36
+emu_sm_sound_chip = emu_sm+emu_width*13+36
 
 	jsr init
-	jmp quick
+;	jmp quick
 
 	mwa #dl1 sdlstl
 	mva #$22 sdmctl
@@ -188,7 +188,7 @@ not_visible
 	m_copy_desktop desktop_01 desktop_start_bank_number top
 	jsr wait_50
 	m_copy_desktop desktop_02 desktop_start_bank_number top
-	jsr click_and_wait
+	jsr click_and_wait_io
 	m_copy_desktop desktop_01 desktop_start_bank_number top
 
 	ldx #middle+4
@@ -206,21 +206,21 @@ fill_pm	sta emu_pm+$41c+middle,x
 	m_copy_desktop desktop_03 desktop_start_bank_number+1 middle
 	jsr wait_50
 	m_copy_desktop desktop_04 desktop_start_bank_number+1 middle
-	jsr click_and_wait
+	jsr click_and_wait_io
 	m_copy_desktop desktop_05 desktop_start_bank_number+1 middle
 	jsr wait_50
 	m_copy_desktop desktop_06 desktop_start_bank_number+1 middle
-	jsr click_and_wait
+	jsr click_and_wait_io
 	
 
 	m_copy_desktop desktop_07 desktop_start_bank_number+2 middle
 	jsr wait_50
 	m_copy_desktop desktop_08 desktop_start_bank_number+2 middle
-	jsr click_and_wait
+	jsr click_and_wait_io
 	m_copy_desktop desktop_09 desktop_start_bank_number+2 middle
 	jsr wait_50
 	m_copy_desktop desktop_10 desktop_start_bank_number+2 middle
-	jsr click_and_wait
+	jsr click_and_wait_io
 
 ;	Disable middle/bottom DLI and PMs
 	ldx #middle+4
@@ -230,8 +230,8 @@ fill_pm	sta emu_pm+$41c+middle,x
 	mva #0 pm_visible
 
 	m_copy_desktop desktop_11 desktop_start_bank_number+3 top
-	lda #150
-	jsr wait
+	ldx #60
+	jsr wait_io
 	lda #0
 	sta sdmctl
 	sta color4
@@ -246,21 +246,24 @@ fill_pm	sta emu_pm+$41c+middle,x
 	rts
 	.endp
 
-	.proc click_and_wait
+	.proc click_and_wait_io
 	jsr click
-	lda #50
+	ldx #25
+	jmp wait_io
+	.endp
+
+	.proc wait_io	; IN: <X>=number of 10-frame blocks
+loop	lda #0
+	sta consol
+	lda random
+	and #3
+	ora #1
 	jsr wait
+	dex
+	bne loop
 	rts
 	.endp
-	
-	lda #0
-	sta sdmctl
-	sta color1
-	sta color2
-	sta color4
-	lda #25
-	jsr wait
-	rts
+
 	.endp
 
 	.local disk_pm
@@ -360,9 +363,18 @@ no_mapping
 	.endp
 	
 	.proc handle_input
-	.var covox_index=1 .byte 
+	.var sound_chip_index .byte 
 
-	jsr print_covox_address
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	mva #1 sound_chip_index
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	mva #0 sound_chip_index
+	.else
+	.error "Undefined sound mode."
+	.endif
+
+	
+	jsr print_sound_chip_address
 
 	mva #250 x1
 loop	lda x1
@@ -373,7 +385,7 @@ loop	lda x1
 	lsr
 	bcs no_select
 
-	jsr next_covox_address
+	jsr next_sound_chip_address
 
 	mva #200 x1
 still_select
@@ -395,46 +407,49 @@ shift_down
 return
 	rts
 	
-	.proc print_covox_address
-	mwa #emu_sm_covox p1
+	.proc print_sound_chip_address	; IN: sound_chip_index, OUT: sound_chip_base
+	mwa #emu_sm_sound_chip p1
 	ldy #0
 
-	lda covox_index
+	lda sound_chip_index
 	asl
 	tax
-	lda covox_addresses,x
+	lda sound_chip_addresses,x
+	sta sound_chip_base
+	and #$f0		; For pokey, the lower 4 bits include the channel, but that is not displayed
 	pha
-	lda covox_addresses+1,x
+	lda sound_chip_addresses+1,x
+	sta sound_chip_base+1
 	jsr print_byte
 	pla
 	jsr print_byte
 	rts
 	.endp
 	
-	.proc invert_covox_address
+	.proc invert_sound_chip_address
 	ldx #3
-loop	lda emu_sm_covox,x
+loop	lda emu_sm_sound_chip,x
 	eor #$80
-	sta emu_sm_covox,x
+	sta emu_sm_sound_chip,x
 	dex
 	bpl loop
 	rts
 	.endp
 
-	.proc next_covox_address
-	lda covox_index
+	.proc next_sound_chip_address
+	lda sound_chip_index
 	clc
 	adc #1
-	cmp #[.len covox_addresses]/2
+	cmp #[.len sound_chip_addresses]/2
 	sne
 	lda #0
-	sta covox_index
-	jsr print_covox_address
-	jsr invert_covox_address
+	sta sound_chip_index
+	jsr print_sound_chip_address
+	jsr invert_sound_chip_address
 	jsr click
 	lda #3
 	jsr wait
-	jsr invert_covox_address
+	jsr invert_sound_chip_address
 	rts
 	.endp
 	
@@ -522,12 +537,26 @@ le4d5	cmp vcount
 	.sb "Machine:            Atari XL/XE         "         
 	.sb "Base-RAM:           64 kB               "
 	.sb "AtariDOS Drives:    D1                  "
-	.sb "Sound Chip:         COVOX 8 bit at $D280"
+
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	.sb "Sound Chip:         COVOX 8-bit at $D280"
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	.sb "Sound Chip:         POKEY 4-bit at $D200"
+	.else
+	.error "Undefined sound mode."
+	.endif
+
 	.sb "Boot Time:          2024/12/07 00:00:00 "
 	.sb "----------------------------------------"
 	.sb "                                        "
 	.sb "Hold <START> to skip AUTO/ACC           "
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
 	.sb "Hold <SELECT> to select COVOX address   "
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	.sb "Hold <SELECT> to select POKEY address   "
+	.else
+	.error "Undefined sound mode."
+	.endif
 	.sb "Press key 'D' to boot from D1:          "
 	.sb "Press key <Esc> to run an early console "
 	.sb "                                        "	
@@ -539,8 +568,14 @@ le4d5	cmp vcount
 :8	.byte $ff
 	.endl
 
-	.local covox_addresses
-	.word $d100,$d280,$d500,$d600,$d700
+	.local sound_chip_addresses
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	.word $d100,$d280,$d600,$d700	; $d500 would collide with cartridge
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	.word $d202,$d212
+	.else
+	.error "Undefined sound mode."
+	.endif
 	.endl
 
 	.endp
