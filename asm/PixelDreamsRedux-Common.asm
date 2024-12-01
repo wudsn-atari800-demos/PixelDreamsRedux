@@ -81,6 +81,14 @@ loop	stx color1
 	rts
 	.endp
 
+	.proc toggle_dli_flag	; IN: <X>=offset in dl
+	lda graphics8.dl,x
+	eor #$80
+	sta graphics8.dl,x
+	rts
+	.endp
+
+
 	.local dl
 dc = $0f
 	.byte $70,$70,$30
