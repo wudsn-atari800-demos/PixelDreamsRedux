@@ -66,7 +66,7 @@ loop	lda (keydef),y
 	.endp
 
 main_rom
-	.proc main,$2000
+	.proc main,$800
 	.var .byte loop_mode = 0
  
  	cli

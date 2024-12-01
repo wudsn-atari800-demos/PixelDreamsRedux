@@ -10,6 +10,13 @@ emu_height = 23
 emu_width = 40
 emu_sm_sound_chip = emu_sm+emu_width*13+36
 
+offset_top = 0
+offset_middle = 58
+
+dli_offset_top = 14
+dli_offset_middle = offset_middle+4
+dli_offset_bottom = offset_middle+4+93
+
 	jsr init
 ;	jmp quick
 
@@ -87,7 +94,7 @@ fill	mva :1,x emu_pm+$400+$100*:2+:3,x
 	ldy #<vbi
 	jsr setvbv
 
-	ldx #14
+	ldx #dli_offset_top
 	jsr toggle_dli_flag
 	mva #$3e sdmctl
 	rts
@@ -182,54 +189,50 @@ not_visible
 
 	.endm
 
-	top = 0
-	middle = 58
-
-	m_copy_desktop desktop_01 desktop_start_bank_number top
+	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
 	jsr wait_50
-	m_copy_desktop desktop_02 desktop_start_bank_number top
+	m_copy_desktop desktop_02 desktop_start_bank_number offset_top
 	jsr click_and_wait_io
-	m_copy_desktop desktop_01 desktop_start_bank_number top
+	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
 
-	ldx #middle+4
+	ldx #dli_offset_middle
 	jsr toggle_dli_flag
-	ldx #middle+4+93
+	ldx #dli_offset_bottom
 	jsr toggle_dli_flag
 	ldx #90
 	lda #$c0
-fill_pm	sta emu_pm+$41c+middle,x
-	sta emu_pm+$51c+middle,x
+fill_pm	sta emu_pm+$41c+offset_middle,x
+	sta emu_pm+$51c+offset_middle,x
 	dex
 	bpl fill_pm
 
 
-	m_copy_desktop desktop_03 desktop_start_bank_number+1 middle
+	m_copy_desktop desktop_03 desktop_start_bank_number+1 offset_middle
 	jsr wait_50
-	m_copy_desktop desktop_04 desktop_start_bank_number+1 middle
+	m_copy_desktop desktop_04 desktop_start_bank_number+1 offset_middle
 	jsr click_and_wait_io
-	m_copy_desktop desktop_05 desktop_start_bank_number+1 middle
+	m_copy_desktop desktop_05 desktop_start_bank_number+1 offset_middle
 	jsr wait_50
-	m_copy_desktop desktop_06 desktop_start_bank_number+1 middle
+	m_copy_desktop desktop_06 desktop_start_bank_number+1 offset_middle
 	jsr click_and_wait_io
-	
 
-	m_copy_desktop desktop_07 desktop_start_bank_number+2 middle
+	m_copy_desktop desktop_07 desktop_start_bank_number+2 offset_middle
 	jsr wait_50
-	m_copy_desktop desktop_08 desktop_start_bank_number+2 middle
+	m_copy_desktop desktop_08 desktop_start_bank_number+2 offset_middle
 	jsr click_and_wait_io
-	m_copy_desktop desktop_09 desktop_start_bank_number+2 middle
+	m_copy_desktop desktop_09 desktop_start_bank_number+2 offset_middle
 	jsr wait_50
-	m_copy_desktop desktop_10 desktop_start_bank_number+2 middle
+	m_copy_desktop desktop_10 desktop_start_bank_number+2 offset_middle
 	jsr click_and_wait_io
 
 ;	Disable middle/bottom DLI and PMs
-	ldx #middle+4
+	ldx #dli_offset_middle
 	jsr toggle_dli_flag
-	ldx #middle+4+93
+	ldx #dli_offset_bottom
 	jsr toggle_dli_flag
 	mva #0 pm_visible
 
-	m_copy_desktop desktop_11 desktop_start_bank_number+3 top
+	m_copy_desktop desktop_11 desktop_start_bank_number+3 offset_top
 	ldx #60
 	jsr wait_io
 	lda #0
@@ -237,6 +240,8 @@ fill_pm	sta emu_pm+$41c+middle,x
 	sta color4
 	lda #1
 	jsr wait
+	ldx #dli_offset_top
+	jsr toggle_dli_flag
 
 	rts
 	
@@ -572,7 +577,7 @@ le4d5	cmp vcount
 	.if ACTIVE_SOUND_MODE=sound_mode.covox
 	.word $d100,$d280,$d600,$d700	; $d500 would collide with cartridge
 	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
-	.word $d202,$d212
+	.word audc1,audc1+$10
 	.else
 	.error "Undefined sound mode."
 	.endif
