@@ -45,7 +45,7 @@ goto :eof
 echo Converting desktop section %IMAGE%
 set IMAGE=%1
 set COMMON=-strip -seed 100 -threshold 50% -monochrome
-%MAGICK% full/%IMAGE%.png -crop "320x91+0+56" -colors 2 gr8/%IMAGE%.png
+%MAGICK% full/%IMAGE%.png  %COMMON% -crop "320x91+0+56" -colors 2 gr8/%IMAGE%.png
 goto :eof
 
 :copy_mask_image
