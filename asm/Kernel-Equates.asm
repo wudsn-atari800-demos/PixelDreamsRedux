@@ -56,6 +56,7 @@ critic = $42
 atract = $4d
 lmargn = $52
 rowcrs = $54
+colcrs = $55	;2 BYTES
 savmsc = $58
 ramtop = $6a
 keydef = $79	;121 (XL) KEY DEFINATION POINTER, 2 BYTES

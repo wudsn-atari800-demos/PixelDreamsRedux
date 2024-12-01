@@ -5,10 +5,14 @@
 rom_chr	= $e000
 emu_chr	= desktop_base
 emu_sm	= desktop_base+$400
-emu_pm	= desktop_base+$800
 emu_height = 23
 emu_width = 40
 emu_sm_sound_chip = emu_sm+emu_width*13+36
+
+tos_pm	= desktop_base+$800	;TODO: Remove $800
+tos_sm	= main_sm
+tos_sm_width = 40
+tos_sm_lines = 200
 
 offset_top = 0
 offset_middle = 58
@@ -18,7 +22,7 @@ dli_offset_middle = offset_middle+4
 dli_offset_bottom = offset_middle+4+93
 
 	jsr emu.init
-	jsr emu.animate	; Comment out to skip
+;	jsr emu.animate	; Comment out to skip
 
 	jsr tos.init
 	jsr tos.animate
@@ -60,12 +64,11 @@ copy_chr_special
 	lda #$00
 	tax
 clear_pm
-;	lda random
-	sta emu_pm+$300,x
-	sta emu_pm+$400,x
-	sta emu_pm+$500,x
-	sta emu_pm+$600,x
-	sta emu_pm+$700,x
+	sta tos_pm+$300,x
+	sta tos_pm+$400,x
+	sta tos_pm+$500,x
+	sta tos_pm+$600,x
+	sta tos_pm+$700,x
 	inx
 	bne clear_pm
 	rts
@@ -226,6 +229,86 @@ loop	lda emu_sm_sound_chip,x
 
 	.endp		; End of animate
 
+	m_align $400	;$TODO
+
+	.local dl1	
+	.byte $70,$70,$30
+	.byte $42,a(sm1)
+	.byte $41,a(dl1)
+	.endl
+
+	m_assert_same_1k dl1
+
+	.local sm1
+	.sb "EmuTOS Version 1.3 Redux                "
+	.endl
+
+	.local dl2	
+	.byte $70,$70,$30
+	.byte $70
+	.byte $44,a(emu_sm),$04,$04,$04,$04
+:18	.byte $02
+	
+	.byte $41,a(dl2)
+	.endl
+
+	m_assert_same_1k dl2
+
+	.local sm2
+	.sb "   *********** ##########  ###   ####   "	
+	.sb "   *                  #   #   # #       "
+	.sb "   ****   * *  *   *  #   #   #  ###    "
+	.sb "   *     * * * *   *  #   #   #     #   "
+	.sb "   ***** * * *  ***   #    ###  ####    "
+	.sb "                                        "
+	.sb "----------------------------------------"
+	.sb "                                        "
+	.sb "EmuTOS Version:     1.3 Redux           "
+	.sb "CPU type:           MOS 6502C           "
+	.sb "Machine:            Atari XL/XE         "         
+	.sb "Base-RAM:           64 kB               "
+	.sb "AtariDOS Drives:    D1                  "
+
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	.sb "Sound Chip:         COVOX 8-bit at $D280"
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	.sb "Sound Chip:         POKEY 4-bit at $D200"
+	.else
+	.error "Undefined sound mode."
+	.endif
+
+	.sb "Boot Time:          2024/12/07 00:00:00 "
+	.sb "----------------------------------------"
+	.sb "                                        "
+	.sb "Hold <START> to skip AUTO/ACC           "
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	.sb "Hold <SELECT> to select COVOX address   "
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	.sb "Hold <SELECT> to select POKEY address   "
+	.else
+	.error "Undefined sound mode."
+	.endif
+	.sb "Press key 'D' to boot from D1:          "
+	.sb "Press key <Esc> to run an early console "
+	.sb "                                        "	
+	.sb +$80 "   Hold <Shift> to pause this screen    "
+	.endl
+	
+	.local chr_special
+:8	.byte $55
+:8	.byte $ff
+	.endl
+
+	.local sound_chip_addresses
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	.word $d100,$d280,$d600,$d700	; $d500 would collide with cartridge
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	.word audc1,audc1+$10
+	.else
+	.error "Undefined sound mode."
+	.endif
+	.endl
+
 	.endp		; End of emu
 
 
@@ -243,7 +326,7 @@ loop	lda emu_sm_sound_chip,x
 	sta sizep2
 	sta sizep3
 
-	mva #>emu_pm pmbase
+	mva #>tos_pm pmbase
 	mva #3 gractl
 	mva #1 gprior
 
@@ -256,7 +339,7 @@ loop	lda emu_sm_sound_chip,x
 
 	.macro m_copy
 	ldx #.len :1-1
-fill	mva :1,x emu_pm+$400+$100*:2+:3,x
+fill	mva :1,x tos_pm+$400+$100*:2+:3,x
 	dex
 	bpl fill
 	.endm
@@ -353,7 +436,7 @@ not_visible
 
 	.macro m_copy_desktop
 	mwa #:1 p1
-	mwa #sm+40*:3 p2
+	mwa #tos_sm+tos_sm_width*:3 p2
 	lda #:2
 	ldx #>.len :1
 	ldy #<.len :1
@@ -367,14 +450,35 @@ not_visible
 	jsr click_and_wait_io
 	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
 
+	jsr cursor.init
+	lda #0
+	sta colcrs
+	sta colcrs+1
+	sta rowcrs
+
+	jsr cursor.move_to.set_random_position
+test
+	jsr cursor.read_joystick
+	jsr cursor.move_to.animate
+	bne not_equal
+
+	jsr cursor.move_to.set_random_position
+
+not_equal
+	lda #1
+	jsr wait
+	jsr cursor.clear
+	jsr cursor.draw
+	jmp test
+
 	ldx #dli_offset_middle
 	jsr graphics8.toggle_dli_flag
 	ldx #dli_offset_bottom
 	jsr graphics8.toggle_dli_flag
 	ldx #90
 	lda #$c0
-fill_pm	sta emu_pm+$41c+offset_middle,x
-	sta emu_pm+$51c+offset_middle,x
+fill_pm	sta tos_pm+$41c+offset_middle,x
+	sta tos_pm+$51c+offset_middle,x
 	dex
 	bpl fill_pm
 
@@ -464,10 +568,319 @@ loop	lda #0
 :29	.byte $3c
 :9	.byte $ff
 	.endl
+
+;----------------------------------------------------------------------
+
+	.proc cursor
+
+cursor_width = 16	; Pixels
+cursor_height = 16	; Lines
+cursor_speed = 2
+
+
+;----------------------------------------------------------------------
+
+	.proc init
+	size = 32
+	ldx #size
+
+shift_loop
+	lda graphics.and_mask-size,x
+	sec
+	ror
+	sta graphics.and_mask,x
+	lda graphics.and_mask-size+1,x
+	ror
+	sta graphics.and_mask+1,x
+
+	lda graphics.or_mask-size,x
+	lsr
+	sta graphics.or_mask,x
+	lda graphics.or_mask-size+1,x
+	ror
+	sta graphics.or_mask+1,x
+	inx
+	inx
+	bne shift_loop
+
+	rts
 	
-	.endp 		; End of TOS
+	.endp
 
+;----------------------------------------------------------------------
 
+	.proc move_to
+
+	.var to_x .word
+	.var to_y .byte
+
+	.proc set_random_position
+	lda random
+	and #$fe
+	tax
+	lda random
+	and #126
+	tay
+	jsr cursor.move_to.set_position
+	rts
+	.endp
+
+	.proc set_position	 	; IN: <X>, <Y>, OUT: Z=1, if all equal
+	stx to_x
+	sty to_y
+	rts
+	.endp
+	
+	.proc animate
+	ldy #0
+
+	cpw colcrs to_x
+	beq x_equal
+	bcc x_lower
+	iny
+	sbw colcrs #cursor_speed
+	jmp x_equal
+x_lower
+	iny
+	adw colcrs #cursor_speed
+	jmp x_equal
+x_equal
+
+	lda rowcrs
+	cmp to_y
+	beq y_equal
+	bcc y_lower
+	iny
+	lda rowcrs
+	sub #cursor_speed
+	sta rowcrs
+	jmp y_equal
+y_lower
+	iny
+	lda rowcrs
+	add #cursor_speed
+	sta rowcrs
+	jmp y_equal
+y_equal
+
+	tya
+	rts
+	.endp
+	
+	.endp		; End of move_to
+;----------------------------------------------------------------------
+
+	.proc read_joystick
+	lda porta
+	sta x1
+	lsr x1
+	bcs not_up
+	lda rowcrs
+	beq not_up
+	lda rowcrs
+	sub #cursor_speed
+	sta rowcrs
+not_up
+	lsr x1
+	bcs not_down
+	lda rowcrs
+	cmp #tos_sm_lines-cursor_width
+	beq not_down
+	lda rowcrs
+	add #cursor_speed
+	sta rowcrs
+not_down
+
+	lsr x1
+	bcs not_left
+	cpw colcrs #0
+	beq not_left
+	sbw colcrs #cursor_speed
+not_left
+	lsr x1
+	bcs not_right
+	cpw colcrs #320-cursor_width
+	beq not_right
+	adw colcrs #cursor_speed
+not_right
+	rts
+	.endp
+
+;----------------------------------------------------------------------
+
+	.proc draw		;IN: colcrs, rowcrs
+	mva colcrs+1 x1
+	lda colcrs		; Compute byte offset
+	lsr x1
+	ror
+	sta x2			; Compute HPOS offset
+	lsr x1
+	ror
+	lsr x1
+	ror
+
+	ldx rowcrs		; Compute line offset
+	clc
+	adc graphics.llo,x
+	sta p1
+	lda #0
+	adc graphics.lhi,x
+	sta p1+1
+	
+	lda colcrs		; Compute shift offset
+	and #7
+	asl
+	asl
+	asl
+	asl
+	asl
+	sta x1
+
+	mwa #graphics.and_mask p2
+	clc
+	lda p2
+	adc x1
+	sta p2
+	scc
+	inc p2+1
+
+	mwa #graphics.or_mask p3
+	clc
+	lda p3
+	adc x1
+	sta p3
+	scc
+	inc p3+1
+	
+	mwa p1 graphics.buffer.address
+	ldx #cursor_height-1
+loop	ldy #0
+	lda (p1),y
+	sta graphics.buffer.column1,x
+	and (p2),y
+	ora (p3),y
+	sta (p1),y
+	iny
+	lda (p1),y
+	sta graphics.buffer.column2,x
+	and (p2),y
+	ora (p3),y
+	sta (p1),y
+	adw p1 #tos_sm_width
+	adw p2 #2
+	adw p3 #2
+	dex
+	bpl loop
+	
+	clc
+	lda x2
+	adc #$30		; PM x-offset
+	sta hposm3
+	adc #2
+	sta hposm2
+	adc #2
+	sta hposm1
+	adc #2
+	sta hposm0
+	
+	lda rowcrs
+	clc
+	adc #$1c		; PM y-offset
+	sta graphics.buffer.ypos
+	tay
+	ldx #cursor_height-1
+pm_loop	lda graphics.pm,x
+	sta tos_pm+$300,y
+	iny
+	dex
+	bpl pm_loop
+
+	
+	rts
+	.endp
+
+;----------------------------------------------------------------------
+
+	.proc clear
+	lda graphics.buffer.address+1
+	beq return			;Never used
+	sta p1+1
+	mva graphics.buffer.address p1
+
+	ldx #cursor_height-1
+loop	ldy #0
+	lda graphics.buffer.column1,x
+	sta (p1),y
+	iny
+	lda graphics.buffer.column2,x
+	sta (p1),y
+	adw p1 #tos_sm_width
+
+	dex
+	bpl loop
+
+	ldy graphics.buffer.ypos
+	ldx #cursor_height-1
+	lda #$00
+pm_loop	sta tos_pm+$300,y
+	iny
+	dex
+	bpl pm_loop
+
+return	rts
+	.endp
+
+;----------------------------------------------------------------------
+
+	.local graphics
+
+	.local and_mask
+	ins "../gfx/full/desktop-cursor-01-and.pic"
+	.ds 7*32
+	.endl
+
+	.local or_mask
+	ins "../gfx/full/desktop-cursor-01-or.pic"
+	.ds 7*32
+	.endl
+
+	.local llo
+:tos_sm_lines	.byte <[tos_sm+#*tos_sm_width]
+	.endl
+	
+	.local lhi
+:tos_sm_lines	.byte >[tos_sm+#*tos_sm_width]
+	.endl
+
+	.local pm
+	.byte $10,$10,$38,$b8
+	.byte $f0,$f0,$f8,$f8
+	.byte $f8,$f0,$f0,$e0
+	.byte $e0,$c0,$c0,$80
+	.endl
+
+	.local buffer
+
+address	.word $0000
+
+	.local column1
+	.ds cursor_height
+	.endl
+	.local column2
+	.ds cursor_height
+	.endl
+
+ypos	.byte $00
+
+	.endl		; End of buffer
+
+	.endl		; End of graphics
+
+	.endp		; End of cursor
+
+	.endp 		; End of tos
+
+;----------------------------------------------------------------------
 
 	.proc click
 	ldy #$0c
@@ -511,85 +924,5 @@ le4d5	cmp vcount
 	.endl
 
 	.endp
-
-	m_align $400	;$TODO
-
-	.local dl1	
-	.byte $70,$70,$30
-	.byte $42,a(sm1)
-	.byte $41,a(dl1)
-	.endl
-
-	m_assert_same_1k dl1
-
-	.local sm1
-	.sb "EmuTOS Version 1.3 Redux                "
-	.endl
-
-	.local dl2	
-	.byte $70,$70,$30
-	.byte $70
-	.byte $44,a(emu_sm),$04,$04,$04,$04
-:18	.byte $02
-	
-	.byte $41,a(dl2)
-	.endl
-
-	m_assert_same_1k dl2
-
-	.local sm2
-	.sb "   *********** ##########  ###   ####   "	
-	.sb "   *                  #   #   # #       "
-	.sb "   ****   * *  *   *  #   #   #  ###    "
-	.sb "   *     * * * *   *  #   #   #     #   "
-	.sb "   ***** * * *  ***   #    ###  ####    "
-	.sb "                                        "
-	.sb "----------------------------------------"
-	.sb "                                        "
-	.sb "EmuTOS Version:     1.3 Redux           "
-	.sb "CPU type:           MOS 6502C           "
-	.sb "Machine:            Atari XL/XE         "         
-	.sb "Base-RAM:           64 kB               "
-	.sb "AtariDOS Drives:    D1                  "
-
-	.if ACTIVE_SOUND_MODE=sound_mode.covox
-	.sb "Sound Chip:         COVOX 8-bit at $D280"
-	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
-	.sb "Sound Chip:         POKEY 4-bit at $D200"
-	.else
-	.error "Undefined sound mode."
-	.endif
-
-	.sb "Boot Time:          2024/12/07 00:00:00 "
-	.sb "----------------------------------------"
-	.sb "                                        "
-	.sb "Hold <START> to skip AUTO/ACC           "
-	.if ACTIVE_SOUND_MODE=sound_mode.covox
-	.sb "Hold <SELECT> to select COVOX address   "
-	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
-	.sb "Hold <SELECT> to select POKEY address   "
-	.else
-	.error "Undefined sound mode."
-	.endif
-	.sb "Press key 'D' to boot from D1:          "
-	.sb "Press key <Esc> to run an early console "
-	.sb "                                        "	
-	.sb +$80 "   Hold <Shift> to pause this screen    "
-	.endl
-	
-	.local chr_special
-:8	.byte $55
-:8	.byte $ff
-	.endl
-
-	.local sound_chip_addresses
-	.if ACTIVE_SOUND_MODE=sound_mode.covox
-	.word $d100,$d280,$d600,$d700	; $d500 would collide with cartridge
-	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
-	.word audc1,audc1+$10
-	.else
-	.error "Undefined sound mode."
-	.endif
-	.endl
 
 	.endp
