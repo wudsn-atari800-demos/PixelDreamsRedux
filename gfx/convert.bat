@@ -58,7 +58,7 @@ goto :eof
 :convert_color_image
 set IMAGE=%1
 echo Converting color %IMAGE%
-set COMMON=-crop 320x180+0+0 -dither FloydSteinberg -quantize sRGB
+set COMMON=-seed 100 -crop 320x180+0+0 -dither FloydSteinberg -quantize sRGB
 %MAGICK% full/%IMAGE%.png %COMMON% -resize 160x180! -colors 4 gr15/%IMAGE%.png
 %MAGICK% full/%IMAGE%.png %COMMON% -resize 80x180!  -colors 8 gr10/%IMAGE%.png
 goto :eof
