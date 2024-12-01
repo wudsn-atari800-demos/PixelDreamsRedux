@@ -37,21 +37,21 @@ goto :eof
 :convert_bw_image
 set IMAGE=%1
 echo Converting black/white %IMAGE%
-set COMMON=-threshold 30%
+set COMMON=-strip -seed 100 -threshold 30%
 %MAGICK% full/%IMAGE%.png %COMMON% -colors 2 gr8/%IMAGE%.png
 goto :eof
 
 :convert_desktop_section
 echo Converting desktop section %IMAGE%
 set IMAGE=%1
-set COMMON=-threshold 50% -monochrome
+set COMMON=-strip -seed 100 -threshold 50% -monochrome
 %MAGICK% full/%IMAGE%.png -crop "320x91+0+56" -colors 2 gr8/%IMAGE%.png
 goto :eof
 
 :copy_mask_image
 set IMAGE=%1
 echo Copying %IMAGE%
-set COMMON=
+set COMMON=-strip -seed 100 
 %MAGICK% full/%IMAGE%.png %COMMON% gr8/%IMAGE%.png
 goto :eof
 
