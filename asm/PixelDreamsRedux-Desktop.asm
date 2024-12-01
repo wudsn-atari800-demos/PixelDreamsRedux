@@ -328,9 +328,11 @@ loop	lda emu_sm_sound_chip,x
 
 	mva #>tos_pm pmbase
 	mva #3 gractl
-	mva #1 gprior
+;	mva #$11 gprior	; 5th player for missles
+	mva #$01 gprior	; TODO: 5th player for missles
 
 	mva #$0f color1
+	sta color3
 	mva #$00 color2
 	mva #$00 pcolor0
 	sta pcolor1
@@ -441,35 +443,26 @@ not_visible
 	ldx #>.len :1
 	ldy #<.len :1
 	jsr data_stream.get_block
-
+	jsr cursor.draw
 	.endm
 
-	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
+	.macro m_trace
 	jsr wait_50
+	ldx #:1
+	ldy #:2
+	jsr cursor.movement.trace_to_position
+	.endm
+
+	jsr cursor.init
+	jsr cursor.redraw
+
+	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
+	lda #50
+	jsr wait
+	m_trace 192 32
 	m_copy_desktop desktop_02 desktop_start_bank_number offset_top
 	jsr click_and_wait_io
 	m_copy_desktop desktop_01 desktop_start_bank_number offset_top
-
-	jsr cursor.init
-	lda #0
-	sta colcrs
-	sta colcrs+1
-	sta rowcrs
-
-	jsr cursor.move_to.set_random_position
-test
-	jsr cursor.read_joystick
-	jsr cursor.move_to.animate
-	bne not_equal
-
-	jsr cursor.move_to.set_random_position
-
-not_equal
-	lda #1
-	jsr wait
-	jsr cursor.clear
-	jsr cursor.draw
-	jmp test
 
 	ldx #dli_offset_middle
 	jsr graphics8.toggle_dli_flag
@@ -482,22 +475,23 @@ fill_pm	sta tos_pm+$41c+offset_middle,x
 	dex
 	bpl fill_pm
 
-
 	m_copy_desktop desktop_03 desktop_start_bank_number+1 offset_middle
-	jsr wait_50
+	m_trace 52 98
+
 	m_copy_desktop desktop_04 desktop_start_bank_number+1 offset_middle
 	jsr click_and_wait_io
 	m_copy_desktop desktop_05 desktop_start_bank_number+1 offset_middle
-	jsr wait_50
+	m_trace 144 80
+	m_trace 128 102
 	m_copy_desktop desktop_06 desktop_start_bank_number+1 offset_middle
 	jsr click_and_wait_io
 
 	m_copy_desktop desktop_07 desktop_start_bank_number+2 offset_middle
-	jsr wait_50
+	m_trace 52 98
 	m_copy_desktop desktop_08 desktop_start_bank_number+2 offset_middle
 	jsr click_and_wait_io
 	m_copy_desktop desktop_09 desktop_start_bank_number+2 offset_middle
-	jsr wait_50
+	m_trace 52 98
 	m_copy_desktop desktop_10 desktop_start_bank_number+2 offset_middle
 	jsr click_and_wait_io
 
@@ -603,13 +597,18 @@ shift_loop
 	inx
 	bne shift_loop
 
+	lda #0
+	sta colcrs
+	sta colcrs+1
+	sta rowcrs
+
 	rts
 	
 	.endp
 
 ;----------------------------------------------------------------------
 
-	.proc move_to
+	.proc movement
 
 	.var to_x .word
 	.var to_y .byte
@@ -621,17 +620,28 @@ shift_loop
 	lda random
 	and #126
 	tay
-	jsr cursor.move_to.set_position
+	jsr set_position
 	rts
 	.endp
 
-	.proc set_position	 	; IN: <X>, <Y>, OUT: Z=1, if all equal
+	.proc set_position	 	; IN: <X>, <Y>
 	stx to_x
 	sty to_y
 	rts
 	.endp
-	
-	.proc animate
+
+	.proc trace_to_position	 	; IN: <X>, <Y>
+	jsr set_position
+loop	lda #1
+	jsr wait
+	jsr cursor.movement.animate
+	beq return
+	jsr cursor.redraw
+	jmp loop
+return	rts
+	.endp
+
+	.proc animate			; OUT: Z=1, if all equal
 	ldy #0
 
 	cpw colcrs to_x
@@ -667,7 +677,6 @@ y_equal
 	rts
 	.endp
 	
-	.endp		; End of move_to
 ;----------------------------------------------------------------------
 
 	.proc read_joystick
@@ -703,6 +712,16 @@ not_left
 	beq not_right
 	adw colcrs #cursor_speed
 not_right
+	rts
+	.endp
+
+	.endp		; End of movement
+
+;----------------------------------------------------------------------
+
+	.proc redraw
+	jsr clear
+	jsr draw
 	rts
 	.endp
 
@@ -795,7 +814,6 @@ pm_loop	lda graphics.pm,x
 	dex
 	bpl pm_loop
 
-	
 	rts
 	.endp
 
@@ -803,7 +821,7 @@ pm_loop	lda graphics.pm,x
 
 	.proc clear
 	lda graphics.buffer.address+1
-	beq return			;Never used
+	beq return			;Was never drawn
 	sta p1+1
 	mva graphics.buffer.address p1
 
