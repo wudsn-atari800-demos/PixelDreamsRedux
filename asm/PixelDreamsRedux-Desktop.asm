@@ -42,17 +42,14 @@ emu_sm_covox = emu_sm+emu_width*13+36
 quick
 	jsr tos.init
 	jsr tos.test
-	.byte 2
 	
 	.proc tos
 	
+	.var pm_visible = 0 .byte
+
 	.proc init
 	jsr graphics8.clear
 	mwa #graphics8.dl sdlstl
-	
-	mwa #desktop_blocks.desktop_01 p1
-	lda #desktop_start_bank_number
-	jsr graphics8.get_block
 
 	lda #$03
 	sta sizep0
@@ -85,16 +82,6 @@ fill	mva :1,x emu_pm+$400+$100*:2+:3,x
 	m_copy trash_pm $0 180
 	m_copy printer_pm $3 182
 
-	clc
-	lda #$32
-	sta hposp0
-	adc #$28
-	sta hposp1
-	adc #$28
-	sta hposp2
-	adc #$28
-	sta hposp3
-
 	lda #6
 	ldx #>vbi
 	ldy #<vbi
@@ -108,36 +95,163 @@ fill	mva :1,x emu_pm+$400+$100*:2+:3,x
 
 	.proc toggle_dli_flag	; IN: <X>=offset in dl
 	lda graphics8.dl,x
-	ora #$80
+	eor #$80
 	sta graphics8.dl,x
 	rts
 	.endp
 
 	.proc vbi
-	mwa #dli vdslst
+	jsr set_pm_position
+	mwa #dli.top vdslst
 	mva #$c0 nmien
 	jmp sysvbv
 	.endp
 
 	.proc dli
+	
+	.proc top
 	pha
 	sta wsync
 	mva #$b0 colpf2
+	mwa #middle vdslst
 	pla
 	rti
 	.endp
 
+	.proc middle
+	pha
+	sta wsync
+	mva pcolor0 colpf2
+	mva #$b0 colpm0
+	sta colpm1
+	lda #$30
+	sta hposp0
+	lda #$c8
+	sta hposp1
+	mwa #bottom vdslst
+	pla
+	rti
+	.endp
+
+	.proc bottom
+	pha
+	sta wsync
+	mva #$b0 colpf2
+	mva pcolor0 colpm0
+	mva pcolor1 colpm1
+	jsr set_pm_position
+	pla
+	rti
+	.endp
+	.endp
+
+	.proc set_pm_position
+	lda pm_visible
+	beq not_visible
+	clc
+	lda #$32
+	sta hposp0
+	adc #$28
+	sta hposp1
+	adc #$28
+	sta hposp2
+	adc #$28
+	sta hposp3
+	rts
+not_visible
+	sta hposp0
+	sta hposp1
+	sta hposp2
+	sta hposp3
+
+	rts
+	.endp
+
 	.proc test
+	mva #1 pm_visible
 
-	mwa #desktop_blocks.desktop_01 p1
-	lda #desktop_start_bank_number
-	jsr graphics8.get_block
+	.use desktop_blocks
 
-	mwa #desktop_blocks.desktop_02 p1
-	lda #desktop_start_bank_number
-	jsr graphics8.get_block
+	.macro m_copy_desktop
+	mwa #:1 p1
+	mwa #sm+40*:3 p2
+	lda #:2
+	ldx #>.len :1
+	ldy #<.len :1
+	jsr data_stream.get_block
 
-	jmp test
+	.endm
+
+	top = 0
+	middle = 58
+
+	m_copy_desktop desktop_01 desktop_start_bank_number top
+	jsr wait_50
+	m_copy_desktop desktop_02 desktop_start_bank_number top
+	jsr click_and_wait
+	m_copy_desktop desktop_01 desktop_start_bank_number top
+
+	ldx #middle+4
+	jsr toggle_dli_flag
+	ldx #middle+4+93
+	jsr toggle_dli_flag
+	ldx #90
+	lda #$c0
+fill_pm	sta emu_pm+$41c+middle,x
+	sta emu_pm+$51c+middle,x
+	dex
+	bpl fill_pm
+
+
+	m_copy_desktop desktop_03 desktop_start_bank_number+1 middle
+	jsr wait_50
+	m_copy_desktop desktop_04 desktop_start_bank_number+1 middle
+	jsr click_and_wait
+	m_copy_desktop desktop_05 desktop_start_bank_number+1 middle
+	jsr wait_50
+	m_copy_desktop desktop_06 desktop_start_bank_number+1 middle
+	jsr click_and_wait
+	
+
+	m_copy_desktop desktop_07 desktop_start_bank_number+2 middle
+	jsr wait_50
+	m_copy_desktop desktop_08 desktop_start_bank_number+2 middle
+	jsr click_and_wait
+	m_copy_desktop desktop_09 desktop_start_bank_number+2 middle
+	jsr wait_50
+	m_copy_desktop desktop_10 desktop_start_bank_number+2 middle
+	jsr click_and_wait
+
+;	Disable middle/bottom DLI and PMs
+	ldx #middle+4
+	jsr toggle_dli_flag
+	ldx #middle+4+93
+	jsr toggle_dli_flag
+	mva #0 pm_visible
+
+	m_copy_desktop desktop_11 desktop_start_bank_number+3 top
+	lda #150
+	jsr wait
+	lda #0
+	sta sdmctl
+	sta color4
+	lda #1
+	jsr wait
+
+	rts
+	
+	.proc wait_50
+	lda #50
+	jsr wait
+	rts
+	.endp
+
+	.proc click_and_wait
+	jsr click
+	lda #50
+	jsr wait
+	rts
+	.endp
 	
 	lda #0
 	sta sdmctl

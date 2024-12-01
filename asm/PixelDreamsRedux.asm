@@ -302,27 +302,45 @@ loop	lda #9
 	.endl
 	
 	m_align_next_bank $00
+	.local desktop_03
 	ins "../gfx/gr8/desktop-03.pic"
+	.endl
 	m_align $1000
+	.local desktop_04
 	ins "../gfx/gr8/desktop-04.pic"
+	.endl
 	m_align $1000
+	.local desktop_05
 	ins "../gfx/gr8/desktop-05.pic"
+	.endl
 	m_align $1000
+	.local desktop_06
 	ins "../gfx/gr8/desktop-06.pic"
+	.endl
 	m_align $1000
 	
 	m_align_next_bank $00
+	.local desktop_07
 	ins "../gfx/gr8/desktop-07.pic"
+	.endl
 	m_align $1000
+	.local desktop_08
 	ins "../gfx/gr8/desktop-08.pic"
+	.endl
 	m_align $1000
+	.local desktop_09
 	ins "../gfx/gr8/desktop-09.pic"
+	.endl
 	m_align $1000
+	.local desktop_10
 	ins "../gfx/gr8/desktop-10.pic"
+	.end
 	m_align $1000
 	
 	m_align_next_bank $00
+	.local desktop_11
 	ins "../gfx/gr8/desktop-11.pic"
+	.endl
 	m_align $2000
 	.endl
 

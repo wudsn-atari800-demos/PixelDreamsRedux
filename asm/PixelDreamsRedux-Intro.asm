@@ -11,6 +11,9 @@
 
 	mwa #graphics8.dl sdlstl
 	mva #$00 gprior
+	sta color1
+	sta color2
+	sta color4
 
 	mva #0 picture_number
 	rts

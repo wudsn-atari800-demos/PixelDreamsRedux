@@ -2,19 +2,19 @@
 cd %~dp0
 set MAGICK="C:\Program Files\ImageMagick-7.1.0-Q16-HDRI\magick.exe"
 
-call :convert_bw_image destkop-01
-call :convert_bw_image destkop-02
+call :convert_bw_image desktop-01
+call :convert_bw_image desktop-02
 
-call :convert_destop_section destkop-03
-call :convert_destop_section destkop-04
-call :convert_destop_section destkop-05
-call :convert_destop_section destkop-06
-call :convert_destop_section destkop-07
-call :convert_destop_section destkop-08
-call :convert_destop_section destkop-09
-call :convert_destop_section destkop-10
+call :convert_desktop_section desktop-03
+call :convert_desktop_section desktop-04
+call :convert_desktop_section desktop-05
+call :convert_desktop_section desktop-06
+call :convert_desktop_section desktop-07
+call :convert_desktop_section desktop-08
+call :convert_desktop_section desktop-09
+call :convert_desktop_section desktop-10
 
-call :convert_bw_image destkop-11
+call :convert_bw_image desktop-11
 
 call :convert_bw_image intro-01
 call :convert_bw_image intro-02
@@ -41,7 +41,7 @@ set COMMON=-threshold 30%
 %MAGICK% full/%IMAGE%.png %COMMON% -colors 2 gr8/%IMAGE%.png
 goto :eof
 
-:convert_destop_section
+:convert_desktop_section
 echo Converting desktop section %IMAGE%
 set IMAGE=%1
 set COMMON=-threshold 50% -monochrome

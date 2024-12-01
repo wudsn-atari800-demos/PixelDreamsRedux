@@ -135,7 +135,7 @@ no_page
 bytes = *+1
 	ldy #$00
 	beq no_bytes
-
+	dey
 byte_loop
 	mva (p1),y (p2),y
 	dey

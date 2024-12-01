@@ -1,8 +1,8 @@
 #WUDSN IDE Converter Parameters
-#Sun Dec 01 17:27:22 CET 2024
+#Sun Dec 01 19:19:56 CET 2024
 converterDirection=IMAGE_TO_FILES
 filesConverterParameters.columns=40
-filesConverterParameters.converterId=
+filesConverterParameters.converterId=com.wudsn.ide.gfx.converter.atari8bit.LinearBitMapGraphics8Converter
 filesConverterParameters.displayAspect.factorX=1
 filesConverterParameters.displayAspect.factorY=1
 filesConverterParameters.displayShrinkToFit=false
@@ -11,10 +11,18 @@ filesConverterParameters.imageAspect.factorX=1
 filesConverterParameters.imageAspect.factorY=1
 filesConverterParameters.imageFilePath=
 filesConverterParameters.palette=HIRES_1
-filesConverterParameters.paletteRGBs=0
+filesConverterParameters.paletteRGBs=2
+filesConverterParameters.paletteRGBs.0.blue=0
+filesConverterParameters.paletteRGBs.0.green=0
+filesConverterParameters.paletteRGBs.0.red=0
+filesConverterParameters.paletteRGBs.1.blue=255
+filesConverterParameters.paletteRGBs.1.green=255
+filesConverterParameters.paletteRGBs.1.red=255
 filesConverterParameters.paletteType=ATARI_DEFAULT
-filesConverterParameters.rows=24
-filesConverterParameters.sourceFiles=0
+filesConverterParameters.rows=91
+filesConverterParameters.sourceFiles=1
+filesConverterParameters.sourceFiles.0.offset=0
+filesConverterParameters.sourceFiles.0.path=desktop-03.pic
 filesConverterParameters.spacingColor.blue=128
 filesConverterParameters.spacingColor.green=0
 filesConverterParameters.spacingColor.red=0
@@ -27,7 +35,7 @@ imageConverterParameters.displayZoomToFit=true
 imageConverterParameters.imageAspect.factorX=1
 imageConverterParameters.imageAspect.factorY=1
 imageConverterParameters.imageFilePath=desktop-03.png
-imageConverterParameters.script=function convertToFileData(data) {\r\n\tvar bpsl \= (data.getImageDataWidth() + 7) / 8;\r\n\tvar bytes \= [];\r\n\tvar offset \= 0;\r\n\tfor (var y \= 0; y < data.getImageDataHeight(); y++) {\r\n\t    for (var x \= 0; x < data.getImageDataWidth(); x \= x + 8) {\r\n\t\t\tvar b \= 0;\r\n\t\t\tfor (var p \= 0; p < 8; p++) {\r\n\t\t\t    var color;\r\n\t\t\t    color \= data.getPixel(x + p, y);\r\n\t\t\t    if (color \!\= 0) {\r\n\t\t\t\t\tb \= b | 1 << 7 - p;\r\n\t\t\t    }\r\n\t\t\t}\r\n\t\t\tbytes[offset++] \= b;\r\n\t    }\r\n\t}\r\n\tdata.setTargetFileObject(0, bytes);\r\n}
+imageConverterParameters.script=function convertToFileData(data) {\r\n\tvar bpsl \= (data.getImageDataWidth() + 7) / 8;\r\n\tvar bytes \= [];\r\n\tvar offset \= 0;\r\n\tfor (var y \= 0; y < data.getImageDataHeight(); y++) {\r\n\t    for (var x \= 0; x < data.getImageDataWidth(); x \= x + 8) {\r\n\t\t\tvar b \= 0;\r\n\t\t\tfor (var p \= 0; p < 8; p++) {\r\n\t\t\t    var color;\r\n\t\t\t    color \= data.getPixel(x + p, y);\r\n              if (x<15 || x+p>304) { color\=1; };\r\n\t\t\t    if (color \!\= 0) {\r\n\t\t\t\t\tb \= b | 1 << 7 - p;\r\n\t\t\t    }\r\n\t\t\t}\r\n\t\t\tbytes[offset++] \= b;\r\n\t    }\r\n\t}\r\n\tdata.setTargetFileObject(0, bytes);\r\n}
 imageConverterParameters.targetFiles=10
 imageConverterParameters.targetFiles.0.path=desktop-03.pic
 imageConverterParameters.targetFiles.1.path=
@@ -39,4 +47,4 @@ imageConverterParameters.targetFiles.6.path=
 imageConverterParameters.targetFiles.7.path=
 imageConverterParameters.targetFiles.8.path=
 imageConverterParameters.targetFiles.9.path=
-imageConverterParameters.useDefaultScript=true
+imageConverterParameters.useDefaultScript=false
