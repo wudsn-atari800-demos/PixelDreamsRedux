@@ -4,11 +4,18 @@ keymap = $600
 
 covox	= $d280
 
+desktop_base = $4000		;2x$400 = $8000 bytes
 lyrics_block_buffer = $5000	; 10*10*40 = 4000 bytes
 main_sm = $6010	
 main_sm_size = 200*40		; 200*40 = 8000 ($1f40) bytes
 outro_02_buffer = $3000		; $2000 bytes
 outro_02_mask_buffer  = $d800	; $2000 bytes
+
+desktop_start_bank_number  = $05
+intro_start_bank_number    = $09
+pictures_start_bank_number = $0b
+lyrics_start_bank_number   = $0d
+outro_start_bank_number    = $0e
 
 ;+---------------------------------------------------------------------------+
 ;| Type 64: MegaCart 2 MB cartridge                                          |

@@ -52,7 +52,7 @@ line_loop
 	.proc copy_block	; Copy $1000 bytes from (block_ptr) to block_buffer
 	mwa block_ptr p1
  	mwa #block_buffer p2
- 	lda #lyrics_start_bank_number+1
+ 	lda #lyrics_start_bank_number
  	ldx #>block_size
  	ldy #<block_size
  	jmp data_stream.get_block

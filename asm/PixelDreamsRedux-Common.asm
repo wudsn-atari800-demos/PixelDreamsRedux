@@ -47,7 +47,6 @@ next_color
 	.proc clear
 	mwa #sm p1
 	ldx #>main_sm_size
-	ldy #>sm
 	lda #0
 	tay
 loop	sta (p1),y

@@ -3,21 +3,24 @@
 	icl "PixelDreamsRedux-Globals.asm"
 	icl "PixelDreamsRedux-Sound-Definitions.asm"
 
+	.def alignment_mode
+
 ; Features
 .ifndef ACTIVE_SOUND_MODE
 ACTIVE_SOUND_MODE = sound_mode.covox
 .endif
 
 ; Zeropage
-p1	= $80
-p2	= $82
-p3	= $84
-x1	= $86
-x2	= $87
+p1	= $80	;Word
+p2	= $82	;Word
+p3	= $84	;Word
+x1	= $86	;Byte
+x2	= $87	;Byte
+covox_base = $88 ;Word, set by desktop, used by sound
 
 main_bank = $90
 
-irq_zp	= $b0	;$32 bytes
+irq_zp	= $b0	;$38 bytes
 
 ; Main screen is 180/5/10/5
 sm_width = 40
@@ -66,9 +69,8 @@ main_rom
 	.proc main,$2000
 	.var .byte loop_mode = 0
  
-	jsr selector
-	jsr fade_out
-
+ 	cli
+	jsr desktop
 
 loop	jsr init
 	jsr play
@@ -87,7 +89,7 @@ no_start
 ;----------------------------------------------------------------------
 
 	icl "PixelDreamsRedux-Common.asm"
-	icl "PixelDreamsRedux-Selector.asm"
+	icl "PixelDreamsRedux-Desktop.asm"
 	icl "PixelDreamsRedux-Intro.asm"
 	icl "PixelDreamsRedux-Pictures.asm"
 	icl "PixelDreamsRedux-Lyrics.asm"
@@ -271,121 +273,130 @@ loop	lda #9
 	.byte a($0000),$00,$00,a(bootloader)
 
 ;----------------------------------------------------------------------
-;	m_align_next_bank $00
-;desktop_start_bank_number = ?cart_bank_number
-;
-;	.proc desktop_blocks
-;
-;	.local destkop_01
-;	ins "../gfx/gr8/destkop-01.pic"
-;	m_align $2000
-;	.endl
-;
-;	.local destkop_02
-;	ins "../gfx/gr8/destkop-02.pic"
-;	m_align $2000
-;	.endl
-;	
-;	m_align_next_bank $00
-;	ins "../gfx/gr8/destkop-03.pic"
-;	m_align $1000
-;	ins "../gfx/gr8/destkop-04.pic"
-;	m_align $1000
-;	ins "../gfx/gr8/destkop-05.pic"
-;	m_align $1000
-;	ins "../gfx/gr8/destkop-06.pic"
-;	m_align $1000
-;	
-;	m_align_next_bank $00
-;	ins "../gfx/gr8/destkop-07.pic"
-;	m_align $1000
-;	ins "../gfx/gr8/destkop-08.pic"
-;	m_align $1000
-;	ins "../gfx/gr8/destkop-09.pic"
-;	m_align $1000
-;	ins "../gfx/gr8/destkop-10.pic"
-;	m_align $1000
-;	
-;	m_align_next_bank $00
-;	ins "../gfx/gr8/destkop-11.pic"
-;	m_align $2000
-;
-;	.endp
+
+	.local padding
+	m_align_next_bank $00
+	.byte $00
+	m_align_next_bank $00
+	.byte $00
+	m_align_next_bank $00
+	.byte $00
+	m_align_next_bank $00
+	.byte $00
+	.endl
+
+
+;----------------------------------------------------------------------
+	m_align_next_bank $00
+
+	.local desktop_blocks
+
+	.local desktop_01
+	ins "../gfx/gr8/desktop-01.pic"
+	m_align $2000
+	.endl
+
+	.local desktop_02
+	ins "../gfx/gr8/desktop-02.pic"
+	m_align $2000
+	.endl
+	
+	m_align_next_bank $00
+	ins "../gfx/gr8/desktop-03.pic"
+	m_align $1000
+	ins "../gfx/gr8/desktop-04.pic"
+	m_align $1000
+	ins "../gfx/gr8/desktop-05.pic"
+	m_align $1000
+	ins "../gfx/gr8/desktop-06.pic"
+	m_align $1000
+	
+	m_align_next_bank $00
+	ins "../gfx/gr8/desktop-07.pic"
+	m_align $1000
+	ins "../gfx/gr8/desktop-08.pic"
+	m_align $1000
+	ins "../gfx/gr8/desktop-09.pic"
+	m_align $1000
+	ins "../gfx/gr8/desktop-10.pic"
+	m_align $1000
+	
+	m_align_next_bank $00
+	ins "../gfx/gr8/desktop-11.pic"
+	m_align $2000
+	.endl
 
 ;----------------------------------------------------------------------
 
 	m_align_next_bank $00
-intro_start_bank_number = ?cart_bank_number
 
-	.proc intro_blocks
+	.local intro_blocks
 
-	.proc intro_01
+	.local intro_01
 	ins "../gfx/gr8/intro-01.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info intro_01
 
-	.proc intro_02
+	.local intro_02
 	ins "../gfx/gr8/intro-02.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info intro_02
 
 	m_align_next_bank $00
 
-	.proc intro_03
+	.local intro_03
 	ins "../gfx/gr8/intro-03.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info intro_03
 
-	.proc intro_04
+	.local intro_04
 	ins "../gfx/gr8/intro-04.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info intro_04
 
-	.endp
+	.endl
 
 ;----------------------------------------------------------------------
 
 	m_align_next_bank $00
-pictures_start_bank_number = ?cart_bank_number+1
 
-	.proc pictures_blocks
+	.local pictures_blocks
 
-	.proc main_01
+	.local main_01
 	ins "../gfx/gr10/main-01.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info main_01
 
-	.proc main_02
+	.local main_02
 	ins "../gfx/gr10/main-02.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info main_02
 
 	m_align_next_bank $00
 
-	.proc main_03
+	.local main_03
 	ins "../gfx/gr10/main-03.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info main_03
 
-	.proc main_04
+	.local main_04
 	ins "../gfx/gr10/main-04.pic"
-	.endp
+	.endl
 	m_align $2000
 	m_info main_04
 
-	.endp
+	.endl
 
 ;----------------------------------------------------------------------
 
 	m_align_next_bank $00
-lyrics_start_bank_number = ?cart_bank_number+1
 
 	.local lyrics_blocks
 	ins "../gfx/gr8/lyrics.pic"	;$2710 bytes
@@ -395,11 +406,10 @@ lyrics_start_bank_number = ?cart_bank_number+1
 ;----------------------------------------------------------------------
 
 	m_align_next_bank $00
-outro_start_bank_number = ?cart_bank_number+2
-	.echo "outro_start_bank_number =",?cart_bank_number
+
 
 	.local outro_blocks
-	
+
 	.local outro_01
 	ins "../gfx/gr8/outro-01.pic"	;$1f40 bytes
 	.endl
@@ -423,8 +433,6 @@ outro_start_bank_number = ?cart_bank_number+2
 ;----------------------------------------------------------------------
 
 	m_align_next_bank $00
-
-	ins "../snd/PixelDreamsRedux-Sound-Data-COVOX.bin", +0, 8*cart_size	; Padding
 
 	.if ACTIVE_SOUND_MODE=sound_mode.covox
 	ins "../snd/PixelDreamsRedux-Sound-Data-COVOX.bin"
