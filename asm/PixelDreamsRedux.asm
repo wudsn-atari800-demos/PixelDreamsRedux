@@ -31,7 +31,7 @@ sm2	= sm+102*sm_width
 
 	m_start_first_bank
 	
-	.byte "Pixel Dream Redux - Bohemian Grove and AJC! - Preview 2024-12-02",13,10,0
+	.byte "Pixel Dreams Redux - Bohemian Grove and JAC! - Party Version 2024-12-02",13,10,0
 
 	.proc bootloader
 	sei

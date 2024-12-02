@@ -8,9 +8,26 @@ Author:  Bohmian Grove & JAC!
          ai caramba (msx)
 
 Info:    Requires PAL
+         Requires 64k RAM
+         Requires 2 MB MegaCart
+         Requires COVOX
          Mono
 
-When the demo has ended, you can press START to restart it. It will then loop automatically.
+One the EmuTOS screen you can press
+SELECT to select the addres for the
+COVOX and the POKEY chip.
 
-https://youtu.be/0rqQFUFGvbM
-https://forums.atariage.com/topic/295770-my-pokey-experiments-using-nonstandard-settings/page/9/#findComment-5103580
+When the demo has ended, you can
+press START to restart it. It will
+then loop automatically.
+
+The COVOX version uses 8-bit samples.
+The POKEY version uses 4-bit samples.
+The sample replay rate is 16 kHz.
+
+References:
+- https://demozoo.org/productions/
+  355398/ (original)
+- https://forums.atariage.com/topic/
+  295770-my/page/9/#comment-5103580
+- https://youtu.be/0rqQFUFGvbM
