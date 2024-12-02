@@ -17,6 +17,8 @@ tos_sm_lines = 200
 offset_top = 0
 offset_middle = 58
 
+pm_offset_middle = offset_middle+$1c
+
 dli_offset_top = 14
 dli_offset_middle = offset_middle+4
 dli_offset_bottom = offset_middle+4+93
@@ -328,11 +330,9 @@ loop	lda emu_sm_sound_chip,x
 
 	mva #>tos_pm pmbase
 	mva #3 gractl
-	mva #$11 gprior	; 5th player for missles
-;	mva #$01 gprior	; TODO: 5th player for missles
+	mva #$01 gprior
 
 	mva #$0f color1
-	sta color3
 	mva #$00 color2
 	mva #$00 pcolor0
 	sta pcolor1
@@ -366,6 +366,8 @@ fill	mva :1,x tos_pm+$400+$100*:2+:3,x
 
 	.proc vbi
 	jsr set_pm_position
+	mva #0 sizem
+
 	mwa #dli.top vdslst
 	mva #$c0 nmien
 	jmp sysvbv
@@ -385,13 +387,21 @@ fill	mva :1,x tos_pm+$400+$100*:2+:3,x
 	.proc middle
 	pha
 	sta wsync
-	mva pcolor0 colpf2
-	mva #$b0 colpm0
-	sta colpm1
-	lda #$30
+	lda #$ff
+	sta sizem
+	clc
+	lda #$38
 	sta hposp0
-	lda #$c8
+	adc #$20
 	sta hposp1
+	adc #$20
+	sta hposp2
+	adc #$20
+	sta hposp3
+	adc #$20
+	sta hposm0
+	adc #$08
+	sta hposm1
 	mwa #bottom vdslst
 	pla
 	rti
@@ -400,9 +410,6 @@ fill	mva :1,x tos_pm+$400+$100*:2+:3,x
 	.proc bottom
 	pha
 	sta wsync
-	mva #$b0 colpf2
-	mva pcolor0 colpm0
-	mva pcolor1 colpm1
 	jsr set_pm_position
 	pla
 	rti
@@ -427,7 +434,6 @@ not_visible
 	sta hposp1
 	sta hposp2
 	sta hposp3
-
 	rts
 	.endp
 
@@ -451,7 +457,8 @@ not_visible
 	.endm
 
 	.macro m_trace
-	jsr wait_50
+	lda #25
+	jsr wait
 	ldx #:1
 	ldy #:2
 	jsr cursor.movement.trace_to_position
@@ -473,9 +480,12 @@ not_visible
 	ldx #dli_offset_bottom
 	jsr graphics8.toggle_dli_flag
 	ldx #90
-	lda #$c0
-fill_pm	sta tos_pm+$41c+offset_middle,x
-	sta tos_pm+$51c+offset_middle,x
+	lda #$ff
+fill_pm	sta tos_pm+$300+pm_offset_middle,x
+	sta tos_pm+$400+pm_offset_middle,x
+	sta tos_pm+$500+pm_offset_middle,x
+	sta tos_pm+$600+pm_offset_middle,x
+	sta tos_pm+$700+pm_offset_middle,x
 	dex
 	bpl fill_pm
 
@@ -513,8 +523,12 @@ fill_pm	sta tos_pm+$41c+offset_middle,x
 	ldx #dli_offset_bottom
 	jsr graphics8.toggle_dli_flag
 	mva #0 pm_visible
+	lda #1
+	jsr wait
+	jsr cursor.clear_missles
 
 	m_copy_desktop desktop_11 desktop_start_bank_number+3 offset_top
+
 	ldx #60
 	jsr wait_io
 	lda #0
@@ -821,11 +835,13 @@ loop	ldy #0
 	tay
 	ldx #cursor_height-1
 pm_loop	lda graphics.pm,x
+	cpy #pm_offset_middle
+	bcs skip
 	sta tos_pm+$300,y
 	iny
 	dex
 	bpl pm_loop
-
+skip
 	rts
 	.endp
 
@@ -852,12 +868,24 @@ loop	ldy #0
 	ldy graphics.buffer.ypos
 	ldx #cursor_height-1
 	lda #$00
-pm_loop	sta tos_pm+$300,y
+pm_loop	cpy #pm_offset_middle
+	bcs skip
+	sta tos_pm+$300,y
 	iny
 	dex
 	bpl pm_loop
+skip
 
 return	rts
+	.endp
+
+	.proc clear_missles
+	lda #0
+	sta hposm0
+	sta hposm1
+	sta hposm2
+	sta hposm3
+	rts
 	.endp
 
 ;----------------------------------------------------------------------
