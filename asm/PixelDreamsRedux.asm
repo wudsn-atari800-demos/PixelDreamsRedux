@@ -6,6 +6,10 @@
 	.def alignment_mode
 
 ; Features
+.ifndef ACTIVE_SOUND_QUALITY
+ACTIVE_SOUND_QUALITY = sound_quality.full
+.endif
+
 .ifndef ACTIVE_SOUND_MODE
 ACTIVE_SOUND_MODE = sound_mode.covox
 .endif

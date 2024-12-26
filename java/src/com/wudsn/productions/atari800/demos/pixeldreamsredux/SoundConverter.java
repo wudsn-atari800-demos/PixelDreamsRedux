@@ -13,7 +13,7 @@ public final class SoundConverter {
 
 	public static void main(String[] args) {
 		SoundConverter soundConverter = new SoundConverter();
-		int result=soundConverter.run(args);
+		int result = soundConverter.run(args);
 		System.exit(result);
 	}
 
@@ -28,12 +28,34 @@ public final class SoundConverter {
 		File inputFile = new File(args[0]);
 		File covoxFile = new File(args[1]);
 		File pokeyFile = new File(args[2]);
+		int result = convertStep(inputFile, covoxFile, pokeyFile, "", 1);
+		if (result == 0) {
+			// Convert again with half the size / step 2
+			result = convertStep(inputFile, covoxFile, pokeyFile, "-half", 2);
+		}
+		return result;
+	}
+
+	private File deriveFileName(File file, String suffix) {
+		String filePath = file.getAbsolutePath();
+		int index = filePath.lastIndexOf('.');
+		File result = new File(filePath.substring(0, index ) + suffix + filePath.substring(index));
+		return result;
+	}
+
+	private int convertStep(File inputFile, File covoxFile, File pokeyFile, String suffix, int stepSize) {
+		covoxFile = deriveFileName(covoxFile, suffix);
+		pokeyFile = deriveFileName(pokeyFile, suffix);
+		return convert(inputFile, covoxFile, pokeyFile, stepSize);
+	}
+
+	private int convert(File inputFile, File covoxFile, File pokeyFile, int stepSize) {
 		int length = (int) inputFile.length();
 		int fixedLength = (length / BLOCK_SIZE) * BLOCK_SIZE;
 
 		System.out.println("Converting 0x" + Long.toHexString(fixedLength) + " of 0x" + Long.toHexString(length)
-				+ " bytes in \"" + inputFile.getName() + "\" to \"" + covoxFile.getName() + "\" and \"" + pokeyFile.getName()
-				+ "\".");
+				+ " bytes in \"" + inputFile.getName() + "\" to \"" + covoxFile.getName() + "\" and \""
+				+ pokeyFile.getName() + "\".");
 
 		byte[] inputData = new byte[fixedLength];
 		byte[] covoxData = new byte[fixedLength];
@@ -91,7 +113,7 @@ public final class SoundConverter {
 		int max = Integer.MIN_VALUE;
 		int offset = 1;
 		for (int i = 0; i < length; i++) {
-			int b = (inputData[i] +offset)& 0xff;
+			int b = (inputData[i] + offset) & 0xff;
 			if (b < min) {
 				min = b;
 			}
@@ -102,7 +124,7 @@ public final class SoundConverter {
 		System.out.println("Input data min=" + min + ", max=" + max + ".");
 
 		for (int i = 0; i < length; i++) {
-			int b = (inputData[i] +offset)& 0xff;
+			int b = (inputData[i] + offset) & 0xff;
 
 			int c = b;
 			covoxData[i] = (byte) c;
