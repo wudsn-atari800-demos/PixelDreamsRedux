@@ -35,7 +35,7 @@ sm2	= sm+102*sm_width
 
 	m_start_first_bank
 	
-	.byte "Pixel Dreams Redux - Bohemian Grove and JAC! - Party Version 2024-12-02",13,10,0
+	.byte "Pixel Dreams Redux - Bohemian Grove and JAC! - Version 2024-12-29",13,10,0
 
 	.proc bootloader
 	sei
@@ -464,10 +464,28 @@ loop	lda #9
 
 	m_align_next_bank $00
 
+	.if ACTIVE_SOUND_QUALITY=sound_quality.full
+	.print "Using sound quality 'full'."
+
 	.if ACTIVE_SOUND_MODE=sound_mode.covox
 	ins "../snd/PixelDreamsRedux-Sound-Data-COVOX.bin"
 	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
 	ins "../snd/PixelDreamsRedux-Sound-Data-POKEY.bin"
 	.else
 	.error "Undefined sound mode."
+	.endif
+
+	.elseif ACTIVE_SOUND_QUALITY=sound_quality.half
+	.print "Using sound quality 'half'."
+	
+	.if ACTIVE_SOUND_MODE=sound_mode.covox
+	ins "../snd/PixelDreamsRedux-Sound-Data-COVOX-half.bin",+0,$c0000
+	.elseif ACTIVE_SOUND_MODE=sound_mode.pokey
+	ins "../snd/PixelDreamsRedux-Sound-Data-POKEY-half.bin",+0,$c0000
+	.else
+	.error "Undefined sound mode."
+	.endif
+
+	.else
+	.error "Undefined sound quality."
 	.endif
